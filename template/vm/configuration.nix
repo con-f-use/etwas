@@ -23,7 +23,7 @@
   '';
   # nix.channel.enable = false;
   environment.etc.nixpkgs.source = pkgs.path;
-  nix.nixPath = [ "nixpkgs=/etc/nixpkgs" ]; #"nixpkgs-overlays=/etc/nixos/nixpkgs/overlays.nix"
+  nix.nixPath = [ "nixpkgs=/etc/nixpkgs" "nixos-config=/etc/nixos/configuration.nix" ]; #"nixpkgs-overlays=/etc/nixos/nixpkgs/overlays.nix"
   nix.settings.flake-registry = pkgs.writeText "registry.json" ''{"version":2,"flakes":[{"from":{"type":"indirect","id":"nixpkgs"},"to":{"type":"path","path":"/etc/nixpkgs"}}]}'';
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.overlays = [ ]; # import ./nixpkgs/overlays.nix
@@ -47,6 +47,7 @@
         { from = "host"; host.port = 9980; guest.port = 9980; }
         { from = "host"; host.port = 9443; guest.port = 443; }
         { from = "host"; host.port = 9943; guest.port = 9943; }
+        { from = "host"; host.port = 9922; guest.port = 22; }
       ];
     };
     environment.shellAliases = {
@@ -54,4 +55,6 @@
       tt = "stty columns 200; stty rows 70; export TERM=xterm-kitty";
     };
   };
+  boot.loader.grub.device = "nodev";
+  fileSystems."/" = {};
 }
