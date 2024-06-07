@@ -11,28 +11,34 @@
 {
   imports = [
     ./custom.nix
+    #./.kitty.nix  # Comment this, if you're not me
   ];
 
   users.mutableUsers = false;
   users.users.root.hashedPassword = "";
   services.getty.autologinUser = "root";
-  nix.settings.trusted-users = [ "root" "@wheel" ];
 
   environment.extraSetup = ''
     rm --force $out/bin/nix-channel
   '';
-  # nix.channel.enable = false;
+  nix.channel.enable = false;
   environment.etc.nixpkgs.source = pkgs.path;
-  nix.nixPath = [ "nixpkgs=/etc/nixpkgs" "nixos-config=/etc/nixos/configuration.nix" ]; #"nixpkgs-overlays=/etc/nixos/nixpkgs/overlays.nix"
-  nix.settings.flake-registry = pkgs.writeText "registry.json" ''{"version":2,"flakes":[{"from":{"type":"indirect","id":"nixpkgs"},"to":{"type":"path","path":"/etc/nixpkgs"}}]}'';
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix = {  
+    nixPath = [ "nixpkgs=/etc/nixpkgs" "nixos-config=/etc/nixos/configuration.nix" ]; #"nixpkgs-overlays=/etc/nixos/nixpkgs/overlays.nix"
+    settings = {
+      flake-registry = "";
+      trusted-users = [ "root" "@wheel" ];
+      experimental-features = [ "nix-command" "flakes" ];
+      nix-path = config.nix.nixPath;  # see: # https://github.com/NixOS/nix/issues/9574 https://github.com/NixOS/nix/issues/10246 
+    };
+  };
   nixpkgs.overlays = [ ]; # import ./nixpkgs/overlays.nix
   nixpkgs.config = { }; # import ./nixpkgs/config.nix
   # environment.variables.NIXPKGS_CONFIG = lib.mkForce "/etc/nixos/nixpkgs/config.nix";
   system.stateVersion = config.system.nixos.release;
 
-  programs.neovim = { enable = true; defaultEditor = true; viAlias = true; vimAlias = true; };
   programs.git.enable = true;
+  programs.neovim = { enable = true; defaultEditor = true; viAlias = true; vimAlias = true; };
   environment.systemPackages = with pkgs; [ ripgrep ];
 
   virtualisation.vmVariant = {
@@ -50,11 +56,13 @@
         { from = "host"; host.port = 9922; guest.port = 22; }
       ];
     };
+    networking.firewall.allowedTCPPorts = [ 80 443 9980 9943 ];
     environment.shellAliases = {
       sht = "sudo shutdown -h now";
-      tt = "stty columns 200; stty rows 70; export TERM=xterm-kitty";
+      tt = "stty columns 200; stty rows 70;";
     };
   };
+
   boot.loader.grub.device = "nodev";
   fileSystems."/" = {};
 }

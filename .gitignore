@@ -1,3 +1,4 @@
 .envrc
+.kitty.nix
 *.orig
 result
